@@ -26,6 +26,7 @@
 	let query = $page.url.searchParams.get('query');
 	let feedQuestionThreads = [];
 	let feedPage = 1;
+	let feedStats = null;
 
 	const handleChangeQuery = (newQuery) => {
 		query = newQuery;
@@ -71,6 +72,8 @@
 			sort: '-providerCreated',
 			expand: 'topic'
 		});
+		feedStats = questions;
+
 		const promises = questions?.items?.map(async (question) => {
 			const answers = await pb.collection('answers').getFullList(200, {
 				filter: `question='${question?.id}'`,
@@ -84,6 +87,8 @@
 		const newThreads = await Promise.all(promises);
 		feedQuestionThreads = [...feedQuestionThreads, ...newThreads];
 	};
+
+	$: console.log('feedStats', feedStats);
 
 	const loadMoreThreads = () => {
 		feedPage += 1;
@@ -164,7 +169,11 @@
 					{/if}
 				{:else}
 					<!-- discussion feed -->
-					<div class="space-y-4">
+					<div class="mt-8 space-y-4">
+						<p>
+							Showing <span class="font-bold">{feedStats?.perPage * feedPage}</span> of
+							<span class="font-bold">{feedStats?.totalItems}</span> discussions
+						</p>
 						<div class="space-y-2">
 							{#each feedQuestionThreads as thread (thread?.id)}
 								<QuestionThread {thread} topic={thread?.expand?.topic} />
