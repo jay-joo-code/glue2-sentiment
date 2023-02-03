@@ -25,6 +25,7 @@
 	let estimatedTotalHits = 0;
 	let query = $page.url.searchParams.get('query');
 	let feedQuestionThreads = [];
+	let feedPage = 1;
 
 	const handleChangeQuery = (newQuery) => {
 		query = newQuery;
@@ -66,8 +67,7 @@
 	const debouncedSearchByQuery = debounce(searchByQuery, 500);
 
 	const fetchFeedQuestionThreads = async () => {
-		// TODO: pagination, fetch more
-		const questions = await pb.collection('questions').getList(1, 30, {
+		const questions = await pb.collection('questions').getList(feedPage, 30, {
 			sort: '-providerCreated',
 			expand: 'topic'
 		});
@@ -81,7 +81,13 @@
 				answers
 			};
 		});
-		feedQuestionThreads = await Promise.all(promises);
+		const newThreads = await Promise.all(promises);
+		feedQuestionThreads = [...feedQuestionThreads, ...newThreads];
+	};
+
+	const loadMoreThreads = () => {
+		feedPage += 1;
+		fetchFeedQuestionThreads();
 	};
 
 	onMount(async () => {
@@ -158,13 +164,15 @@
 					{/if}
 				{:else}
 					<!-- discussion feed -->
-					<div class="space-y-2">
-						{#each feedQuestionThreads as thread (thread?.id)}
-							<QuestionThread {thread} topic={thread?.expand?.topic} />
-						{/each}
-						<!-- {#each popularCourses as course (course.id)}
-							<TopicListItem topic={course} />
-						{/each} -->
+					<div class="space-y-4">
+						<div class="space-y-2">
+							{#each feedQuestionThreads as thread (thread?.id)}
+								<QuestionThread {thread} topic={thread?.expand?.topic} />
+							{/each}
+						</div>
+						<button class="btn-primary btn rounded-full px-6" on:click={loadMoreThreads}
+							>Load more</button
+						>
 					</div>
 				{/if}
 			</div>
