@@ -125,7 +125,9 @@
 <PageContainer title="Home" layout="aside-main">
 	<Main>
 		<div class="space-y-4">
-			<div class="rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-0.5">
+			<div
+				class="ml-[-0.5rem] rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-0.5"
+			>
 				<TextInput
 					bind:value={query}
 					on:input={(event) => {
@@ -136,13 +138,15 @@
 				/>
 			</div>
 			<div>
-				<div class="flex items-center space-x-2 overflow-auto pb-3">
+				<!-- suggested search buttons -->
+				<!-- <div class="flex items-center space-x-2 overflow-auto pb-3">
 					{#each SUGGESTED_SEARCH_QUERIES as queryString, idx (queryString)}
 						<button class="btn-outline btn-sm btn" on:click={() => handleChangeQuery(queryString)}
 							>{queryString}</button
 						>
 					{/each}
-				</div>
+				</div> -->
+
 				{#if Boolean(query)}
 					<!-- topic search results -->
 					<p class="mt-4 text-sm text-base-content/80">
