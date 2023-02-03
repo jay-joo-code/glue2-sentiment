@@ -104,7 +104,7 @@
 		const keywordCount = {};
 
 		logs?.items?.forEach((log) => {
-			const keyword = log?.value;
+			const keyword = log?.value?.trim();
 			keywordCount[keyword] = (keywordCount[keyword] || 0) + 1;
 		});
 
