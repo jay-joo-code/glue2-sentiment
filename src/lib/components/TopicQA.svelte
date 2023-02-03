@@ -38,7 +38,12 @@
 				const questionRawData = postData[0]?.data?.children[0]?.data;
 				const { id, selftext, created_utc, media_metadata } = questionRawData;
 
-				if (media_metadata || title?.includes('[deleted]') || selftext?.includes('[deleted]'))
+				if (
+					media_metadata ||
+					title?.includes('[deleted]') ||
+					selftext?.includes('[deleted]') ||
+					selftext?.includes('View Poll')
+				)
 					return null;
 
 				// NOTE: because a question can be for multiple topics
