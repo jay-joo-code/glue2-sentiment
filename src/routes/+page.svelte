@@ -27,6 +27,8 @@
 	let feedQuestionThreads = [];
 	let feedPage = 1;
 	let feedStats = null;
+	let isSearchFocused = false;
+	let topSearches = [];
 
 	const handleChangeQuery = (newQuery) => {
 		query = newQuery;
@@ -88,16 +90,39 @@
 		feedQuestionThreads = [...feedQuestionThreads, ...newThreads];
 	};
 
-	$: console.log('feedStats', feedStats);
-
 	const loadMoreThreads = () => {
 		feedPage += 1;
 		fetchFeedQuestionThreads();
 	};
 
+	const fetchSearchLogs = async () => {
+		const logs = await pb.collection('logs').getList(1, 200, {
+			filter: `variant='search'`,
+			sort: '-created'
+		});
+
+		const keywordCount = {};
+
+		logs?.items?.forEach((log) => {
+			const keyword = log?.value;
+			keywordCount[keyword] = (keywordCount[keyword] || 0) + 1;
+		});
+
+		const keywords = Object.keys(keywordCount).map(function (key) {
+			return [key, keywordCount[key]];
+		});
+
+		keywords.sort(function (first, second) {
+			return second[1] - first[1];
+		});
+
+		topSearches = keywords.slice(0, 10);
+	};
+
 	onMount(async () => {
 		fetchFeedQuestionThreads();
 		searchByQuery(query);
+		fetchSearchLogs();
 		const coursesData = await pb.collection('topics').getList(1, 4, {
 			filter: "category='course'",
 			sort: '-pageView'
@@ -135,6 +160,12 @@
 					}}
 					placeholder="🔍  Search for a topic"
 					class="w-full rounded-full pl-4"
+					on:focus={() => {
+						isSearchFocused = true;
+					}}
+					on:blur={() => {
+						isSearchFocused = false;
+					}}
 				/>
 			</div>
 			<div>
@@ -171,6 +202,26 @@
 							</div>
 						</div>
 					{/if}
+				{:else if isSearchFocused}
+					<div class="mt-8">
+						<h3 class="mb-4 ml-3 text-xl font-bold">Popular searches</h3>
+						<div class="space-y-2">
+							{#each topSearches as [topSearch], idx (topSearch)}
+								<div>
+									<button
+										type="button"
+										class="btn-ghost btn-sm btn text-lg"
+										on:mousedown={(event) => {
+											event?.preventDefault();
+										}}
+										on:click={() => {
+											handleChangeQuery(topSearch);
+										}}><span class="mr-3 text-base-content/70">0{idx + 1}</span> {topSearch}</button
+									>
+								</div>
+							{/each}
+						</div>
+					</div>
 				{:else}
 					<!-- discussion feed -->
 					<div class="mt-8 space-y-4">
