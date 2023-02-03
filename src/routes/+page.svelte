@@ -6,6 +6,7 @@
 	import PageContainer from '$lib/components/glue/PageContainer.svelte';
 	import TextInput from '$lib/components/glue/TextInput.svelte';
 	import HotTopics from '$lib/components/HotTopics.svelte';
+	import QuestionThread from '$lib/components/QuestionThread.svelte';
 	import TopicListItem from '$lib/components/TopicListItem.svelte';
 	import { pb } from '$lib/glue/pocketbase';
 	import IconDownKarat from '$lib/icons/glue/IconDownKarat.svelte';
@@ -23,6 +24,7 @@
 	let processingTimeMs = 0;
 	let estimatedTotalHits = 0;
 	let query = $page.url.searchParams.get('query');
+	let feedQuestionThreads = [];
 
 	const handleChangeQuery = (newQuery) => {
 		query = newQuery;
@@ -63,7 +65,27 @@
 
 	const debouncedSearchByQuery = debounce(searchByQuery, 500);
 
+	const fetchFeedQuestionThreads = async () => {
+		// TODO: pagination, fetch more
+		const questions = await pb.collection('questions').getList(1, 30, {
+			sort: '-providerCreated',
+			expand: 'topic'
+		});
+		const promises = questions?.items?.map(async (question) => {
+			const answers = await pb.collection('answers').getFullList(200, {
+				filter: `question='${question?.id}'`,
+				$autoCancel: false
+			});
+			return {
+				...question,
+				answers
+			};
+		});
+		feedQuestionThreads = await Promise.all(promises);
+	};
+
 	onMount(async () => {
+		fetchFeedQuestionThreads();
 		searchByQuery(query);
 		const coursesData = await pb.collection('topics').getList(1, 4, {
 			filter: "category='course'",
@@ -111,6 +133,7 @@
 					{/each}
 				</div>
 				{#if Boolean(query)}
+					<!-- topic search results -->
 					<p class="mt-4 text-sm text-base-content/80">
 						{estimatedTotalHits} of 7890 found in {processingTimeMs} milliseconds
 					</p>
@@ -134,10 +157,14 @@
 						</div>
 					{/if}
 				{:else}
+					<!-- discussion feed -->
 					<div class="space-y-2">
-						{#each popularCourses as course (course.id)}
-							<TopicListItem topic={course} />
+						{#each feedQuestionThreads as thread (thread?.id)}
+							<QuestionThread {thread} topic={thread?.expand?.topic} />
 						{/each}
+						<!-- {#each popularCourses as course (course.id)}
+							<TopicListItem topic={course} />
+						{/each} -->
 					</div>
 				{/if}
 			</div>
