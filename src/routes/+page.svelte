@@ -216,7 +216,9 @@
 										}}
 										on:click={() => {
 											handleChangeQuery(topSearch);
-										}}><span class="mr-3 text-base-content/70">0{idx + 1}</span> {topSearch}</button
+										}}
+										><span class="mr-3 text-base-content/70">{('0' + (idx + 1)).slice(-2)}</span>
+										{topSearch}</button
 									>
 								</div>
 							{/each}
@@ -224,7 +226,7 @@
 					</div>
 				{:else}
 					<!-- discussion feed -->
-					<div class="mt-8 space-y-4">
+					<div class="mt-12 space-y-4">
 						<p>
 							Showing <span class="font-bold">{feedStats?.perPage * feedPage}</span> of
 							<span class="font-bold">{feedStats?.totalItems}</span> discussions
