@@ -10,6 +10,7 @@
 	let dorms = [];
 
 	onMount(async () => {
+		// TODO: fetch topics sorted by how many questions they have
 		const coursesData = await pb.collection('topics').getList(1, 4, {
 			filter: "category='course'",
 			sort: '-pageView',
